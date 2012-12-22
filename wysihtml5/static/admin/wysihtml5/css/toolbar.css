@@ -59,31 +59,31 @@ div.commands > span {
   background-position: -48px 0px;
 }
 
-[data-wysihtml5-command="justifyleft"]:after {
+[data-wysihtml5-command="justifyLeft"]:after {
   background-position: -72px 0px;
 }
 
-[data-wysihtml5-command="justifycenter"]:after {
+[data-wysihtml5-command="justifyCenter"]:after {
   background-position: -96px 0px;
 }
 
-[data-wysihtml5-command="justifyright"]:after {
+[data-wysihtml5-command="justifyRight"]:after {
   background-position: -120px 0px;
 }
 
-[data-wysihtml5-command="insertorderedlist"]:after {
+[data-wysihtml5-command="insertOrderedList"]:after {
   background-position: -144px 0px;
 }
 
-[data-wysihtml5-command="insertunorderedlist"]:after {
+[data-wysihtml5-command="insertUnorderedList"]:after {
   background-position: -168px 0px;
 }
 
-[data-wysihtml5-command="insertimage"]:after, .insert-image:after {
+[data-wysihtml5-command="insertImage"]:after, .insert-image:after {
   background-position: -192px 0px;
 }
 
-[data-wysihtml5-command="createlink"]:after, .create-link:after {
+[data-wysihtml5-command="createLink"]:after, .create-link:after {
   background-position: -216px 0px;
 }
 
@@ -121,7 +121,7 @@ div.commands > span {
 }
 
 
-[data-wysihtml5-command="inserthtml"]:after {
+[data-wysihtml5-command="insertHTML"]:after {
   background-position: -264px 0px;
 }
 
