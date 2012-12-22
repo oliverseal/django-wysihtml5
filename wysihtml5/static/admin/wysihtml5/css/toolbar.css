@@ -227,7 +227,7 @@ div.commands > span {
 
 [data-wysihtml5-dialog] > label {
     float: none;
-    display: inline;
+    display: inline !important;
     width: inherit;
     cursor: default;
     padding: 0px;
