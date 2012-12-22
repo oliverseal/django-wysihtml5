@@ -2,31 +2,12 @@
     position: relative;
 }
 
-header {
-  display: block;
-  border-radius: 4px;
-  width: 610px;
-  background: #f6f6f6;
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  border: 1px solid #ddd\9; /* IE 8 and below */
-  background-image: linear-gradient(bottom, rgb(238,238,238) 0%, rgb(255,255,255) 100%);
-  background-image: -o-linear-gradient(bottom, rgb(238,238,238) 0%, rgb(255,255,255) 100%);
-  background-image: -moz-linear-gradient(bottom, rgb(238,238,238) 0%, rgb(255,255,255) 100%);
-  background-image: -webkit-linear-gradient(bottom, rgb(238,238,238) 0%, rgb(255,255,255) 100%);
-  background-image: -ms-linear-gradient(bottom, rgb(238,238,238) 0%, rgb(255,255,255) 100%);
-  box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.3);
-  font-size: 0;
-  text-align: center;
-}
-
-DIV.commands {
+div.commands {
     margin: 5px 0 0;
     padding: 0px;
     display: inline-block;
 }
-DIV.commands > SPAN {
+div.commands > span {
     padding: 0px;
     border: 1px solid #aaa;
     border-radius: 2px;
@@ -78,31 +59,31 @@ DIV.commands > SPAN {
   background-position: -48px 0px;
 }
 
-[data-wysihtml5-command="justifyLeft"]:after {
+[data-wysihtml5-command="justifyleft"]:after {
   background-position: -72px 0px;
 }
 
-[data-wysihtml5-command="justifyCenter"]:after {
+[data-wysihtml5-command="justifycenter"]:after {
   background-position: -96px 0px;
 }
 
-[data-wysihtml5-command="justifyRight"]:after {
+[data-wysihtml5-command="justifyright"]:after {
   background-position: -120px 0px;
 }
 
-[data-wysihtml5-command="insertOrderedList"]:after {
+[data-wysihtml5-command="insertorderedlist"]:after {
   background-position: -144px 0px;
 }
 
-[data-wysihtml5-command="insertUnorderedList"]:after {
+[data-wysihtml5-command="insertunorderedlist"]:after {
   background-position: -168px 0px;
 }
 
-[data-wysihtml5-command="insertImage"]:after, .insert-image:after {
+[data-wysihtml5-command="insertimage"]:after, .insert-image:after {
   background-position: -192px 0px;
 }
 
-[data-wysihtml5-command="createLink"]:after, .create-link:after {
+[data-wysihtml5-command="createlink"]:after, .create-link:after {
   background-position: -216px 0px;
 }
 
@@ -110,7 +91,7 @@ DIV.commands > SPAN {
   background-position: -240px 0px;
 }
 
-.heading-selector DIV {
+.heading-selector div {
   display: none;
   position: absolute;
   z-index: 2;
@@ -123,7 +104,7 @@ DIV.commands > SPAN {
   overflow: hidden;
 }
 
-.heading-selector SPAN {
+.heading-selector span {
   display: block;
   margin: 3px;
   width: auto;
@@ -131,16 +112,16 @@ DIV.commands > SPAN {
   height: 15px;
 }
 
-.heading-selector SPAN:after {
+.heading-selector span:after {
   display: none;
 }
 
-.heading-selector:hover DIV {
+.heading-selector:hover div {
   display: block;
 }
 
 
-[data-wysihtml5-command="insertHTML"]:after {
+[data-wysihtml5-command="inserthtml"]:after {
   background-position: -264px 0px;
 }
 
@@ -148,7 +129,7 @@ DIV.commands > SPAN {
   background-position: -288px 0px;
 }
 
-.fore-color DIV {
+.fore-color div {
   display: none;
   position: absolute;
   z-index: 2;
@@ -161,7 +142,7 @@ DIV.commands > SPAN {
   overflow: hidden;
 }
 
-.fore-color SPAN {
+.fore-color span {
   display: block;
   margin: 3px;
   width: auto;
@@ -169,11 +150,11 @@ DIV.commands > SPAN {
   height: 15px;
 }
 
-.fore-color SPAN:after {
+.fore-color span:after {
   display: none;
 }
 
-.fore-color:hover DIV {
+.fore-color:hover div {
   display: block;
 }
 
@@ -219,7 +200,7 @@ DIV.commands > SPAN {
   outline-offset: 1px;
 }
 
-.wysihtml5-commands-disabled .fore-color DIV {
+.wysihtml5-commands-disabled .fore-color div {
   display: none;
 }
 
@@ -244,7 +225,7 @@ DIV.commands > SPAN {
     margin: 2px 2px 1px 15px;
 }
 
-[data-wysihtml5-dialog] > LABEL {
+[data-wysihtml5-dialog] > label {
     float: none;
     display: inline;
     width: inherit;
@@ -255,9 +236,9 @@ DIV.commands > SPAN {
     color: #113;
 }
 
-[data-wysihtml5-dialog] > A { display: inline }
+[data-wysihtml5-dialog] > a { display: inline }
 
-INPUT[data-wysihtml5-dialog-field] { 
+input[data-wysihtml5-dialog-field] { 
     margin: 0 5px 0 0;
     padding: 4px;
     border: 1px solid #ccc;
