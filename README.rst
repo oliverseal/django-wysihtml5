@@ -1,10 +1,23 @@
 Django-wysihtml5
 ================
 
+Fork Info
+=========
+
+This fork does two things:
+
+1. Removes the ``header`` selector that's in the ``toolbar.css`` which was ruining any attempt at mixing this with `grappelli <https://github.com/sehmaschine/django-grappelli>`.
+2. Attempts to provide something less hideous in terms of icons for the toolbars.
+
+
+Original Info
+=============
+
 By Daniel Rus Morales <http://danir.us/>
 
 * http://pypi.python.org/pypi/django-wysihtml5/
-* http://github.com/danirus/django-wysihtml5/
+* [original] http://github.com/danirus/django-wysihtml5/
+* [forked] http://github.com/oliverseal/django-wysihtml5/
 
 Simple Django app that provides a Wysihtml5 rich text editor textarea widget.
 
