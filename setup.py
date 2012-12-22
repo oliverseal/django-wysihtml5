@@ -9,17 +9,17 @@ test.run_tests = run_tests
 
 setup(
     name = "django-wysihtml5",
-    version = "1.0a1",
+    version = "1.0a1-oliver1",
     packages = find_packages(),
     include_package_data = True,
     license = "MIT",
     description = "Simple Django app that provides a Wysihtml5 rich text editor textarea widget.",
     long_description = "Simple Django app that provides a Wysihtml5 rich text editor textarea widget, with a complete command toolbar to give HTML format to your documents.",
-    author = "Daniel Rus Morales",
-    author_email = "inbox@danir.us",
-    maintainer = "Daniel Rus Morales",
-    maintainer_email = "inbox@danir.us",
-    url = "http://pypi.python.org/pypi/django-wysihtml5/",
+    author = "Daniel Rus Morales, Oliver Wilkerson",
+    author_email = "oliver.wilkerson@gmail.com",
+    maintainer = "Oliver Wilkerson",
+    maintainer_email = "oliver.wilkerson@gmail.com",
+    url = "http://github.com/oliverseal/django-wysihtml5",
     classifiers = [
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
