@@ -1,0 +1,264 @@
+<link rel="stylesheet" type="text/css" href="{{ settings_var.URL_FILEBROWSER_MEDIA }}css/filebrowser.css" />
+<div data-wysihtml5-dialog="insertImage" style="display:none">
+	<input type="hidden" data-wysihtml5-dialog-field="src" value="">
+	<script type="text/javascript" src="../../jsi18n/"></script>
+	<script type="text/javascript" src="{{ settings_var.URL_FILEBROWSER_MEDIA }}js/fileuploader.js"></script>
+	<script type="text/javascript">
+	(function($){
+		$(document).ready(function() {
+			$("div#grp-content-container .grp-collapse").grp_collapsible({
+				on_init: function(elem, options) {
+					// open collapse (and all collapse parents) in case of errors
+					if (elem.find("ul.grp-errorlist").length > 0) {
+						elem.removeClass("grp-closed")
+							.addClass("grp-open");
+						elem.parents(".grp-collapse")
+							.removeClass("grp-closed")
+							.addClass("grp-open");
+					}
+				}
+			});
+		});
+	})(grp.jQuery);
+	(function($){
+		// Collin Anderson : http://stackoverflow.com/questions/1064089/inserting-a-text-where-cursor-is-using-javascript-jquery
+		function insertTextAtCaret(element, text) {
+		    if (document.selection) {
+		        element.focus();
+		        var sel = document.selection.createRange();
+		        sel.text = text;
+		        element.focus();
+		    } else if (element.selectionStart || element.selectionStart === 0) {
+		        var startPos = element.selectionStart;
+		        var endPos = element.selectionEnd;
+		        var scrollTop = element.scrollTop;
+		        element.value = element.value.substring(0, startPos) + text + element.value.substring(endPos, element.value.length);
+		        element.focus();
+		        element.selectionStart = startPos + text.length;
+		        element.selectionEnd = startPos + text.length;
+		        element.scrollTop = scrollTop;
+		    } else {
+		        element.value += text;
+		        element.focus();
+		    }
+		}
+
+		$(document).ready(function() {
+			var csrfTokens = $('input[name="csrfmiddlewaretoken"]');
+			var csrfToken = (csrfTokens.length) ? csrfTokens.val() : '{{ csrf_token }}';
+			var maxUploadSize = Number({{ settings_var.MAX_UPLOAD_SIZE }});
+
+
+			var field = $('#{{id}}');
+			var fieldContainer = field.parents('.wysihtml5-field-container');
+			//create a drop area over the editor
+			var dropAreaMarkup = '<div id="{{id}}-drop-mask" class="wysihtml5-filebrowser-drop-mask">Drop files here.</div>';
+			field.parent().prepend(dropAreaMarkup);
+
+			//setup a second drop zone on the editor
+			var dropArea = $('#{{id}}-drop-mask.wysihtml5-filebrowser-drop-mask').get(0);
+
+			var listItemTemplate = '<div class="wysihtml5-filebrowser-list-item"><div class="wysihtml5-filebrowser-list-item-image-container"><img src="{image_source}" data-filename="{image_name}" onload="this.setAttribute(\'data-width\', this.width); this.setAttribute(\'data-height\', this.height); if (this.width >= 100) this.width = 100; this.style.marginTop = ((100 - (this.height/this.width * 100)) / 2) + \'px\';"></div><div>{image_name}</div></div>';
+			var baseDirectory = '{{ settings_var.MEDIA_URL }}/{{ settings_var.DIRECTORY }}';
+
+			var uploader = new qq.FileUploader({
+				element: $('#file-uploader').get(0),
+				action: '{{filebrowser_do_upload_url}}',
+
+				template: '<div class="qq-uploader">' +
+					'<div class="qq-upload-drop-area"><span>Drop files here to upload</span></div>' +
+					'<div class="qq-upload-button">Upload a file</div>' +
+					'<ul class="qq-upload-list"></ul>' +
+				'</div>',
+
+				fileTemplate: '<li>' +
+					'<span class="qq-upload-file"></span>' +
+					'<span class="qq-upload-spinner"></span>' +
+					'<span class="qq-upload-size"></span>' +
+					'<a class="qq-upload-cancel" href="#">Cancel</a>' +
+					'<span class="qq-upload-failed-text">Failed</span>' +
+					'<div class="progress-bar"><div class="content"></div></div>' +
+				'</li>',
+
+				params: { 'csrf_token': csrfToken,
+						  'csrf_name': 'csrfmiddlewaretoken',
+						  'csrf_xname': 'X-CSRFToken',
+						  'folder': '{{ query.dir|escapejs }}' },
+
+				sizeLimit: maxUploadSize,
+				minSizeLimit: 0,
+				debug: false,
+				// messages
+				messages: {
+					typeError: "{file} has invalid extension. Only {extensions} are allowed.",
+					sizeError: "{file} is too large, maximum file size is {sizeLimit}.",
+					minSizeError: "{file} is too small, minimum file size is {minSizeLimit}.",
+					emptyError: "{file} is empty, please select files again without it.",
+					onLeave: "The files are being uploaded, if you leave now the upload will be cancelled."
+				},
+
+				getItem: function(id) {
+					var items = $(this.element).find('.qq-upload-list li').get();
+					var item = items.pop();
+
+					while (typeof item != "undefined") {
+						if (item.qqFileId == id) {
+							return $(item);
+						}
+						item = items.pop();
+					}
+				},
+				onProgress: function(id, fileName, loaded, total){
+					var bar = this.getItem(id).find('.progress-bar .content');
+					var new_width = '' + (loaded/total * 100) + '%';
+					bar.css('width', new_width);
+				},
+				onComplete: function(id, fileName, resp){
+					if (resp.success) {
+					    this.getItem(id).fadeOut('slow');
+					    //does this item already exist?
+					    var existingSelector = '.wysihtml5-filebrowser-list-item img[data-filename="'+fileName.toLowerCase()+'"]';
+					    var existingImage = $(existingSelector);
+					    if (existingImage.length == 0) {
+						    //add to the list.
+						    var list = $('.wysihtml5-filebrowser-list');
+						    var listItem = listItemTemplate.replace(/\{image_source\}/g, baseDirectory + fileName);
+						    listItem = listItem.replace(/\{image_name\}/g, fileName);
+						    list.append(listItem);
+						} else {
+							existingImage.attr('src', baseDirectory + fileName);
+							existingImage.parent().css({opacity: 0});
+							existingImage.parent().animate({opacity: 1 }, {'duration': 1500, 'queue': false});
+						}
+						//insert into the widget
+						var editor = editorList['{{id}}'];
+						editor.composer.commands.exec("insertHTML", '<img src="'+(baseDirectory + fileName)+'">');
+					}
+				},
+				showMessage: function(message){ alert(message); }
+			});
+
+			var dz = new qq.UploadDropZone({
+	            element: dropArea,
+	            onEnter: function(e){
+	                qq.addClass(dropArea, uploader._classes.dropActive);
+	                e.stopPropagation();
+	            },
+	            onLeave: function(e){
+	                e.stopPropagation();
+	            },
+	            onLeaveNotDescendants: function(e){
+	                qq.removeClass(dropArea, uploader._classes.dropActive);  
+	            },
+	            onDrop: function(e){
+	            	dropArea.style.display = 'none';
+	                qq.removeClass(dropArea, uploader._classes.dropActive);
+	                uploader._uploadFileList(e.dataTransfer.files);    
+	            }
+	        });
+
+	        qq.attach(document, 'dragenter', function(e){     
+	            if (!dz._isValidFileDrag(e)) return;
+	            dropArea.style.display = 'block'; 
+	            dropArea.style.position = 'absolute';
+	            //since we might have more than one on here, we'll traverse to find the relevant one.
+	            var sandBox = field.parent().find('.wysihtml5-sandbox');
+	            var toolbar = $('#{{id}}-toolbar');
+	            dropArea.style.top = sandBox.position().top + 'px';
+	            dropArea.style.width = sandBox.width() + 'px';
+	            dropArea.style.height = sandBox.height() + 'px';
+	            dropArea.style.lineHeight = sandBox.height() + 'px';
+	        });                 
+	        qq.attach(document, 'dragleave', function(e){
+	            if (!dz._isValidFileDrag(e)) return;            
+	            
+	            var relatedTarget = document.elementFromPoint(e.clientX, e.clientY);
+	            // only fire when leaving document out
+	            if ( ! relatedTarget || relatedTarget.nodeName == "HTML"){               
+	                dropArea.style.display = 'none';                                            
+	            }
+	        });
+	        fieldContainer.mouseleave(function(e) { dropArea.style.display = 'none'; });
+		});
+	})(grp.jQuery);
+	</script>
+
+
+	<div id="grp-content-container">
+		<form>
+			<fieldset class="grp-module aligned">
+			<div class="grp-row" id="file-uploader">
+				<noscript>
+					Please enable Javascript to upload files.
+				</noscript>
+			</div>
+			</fieldset>
+			<fieldset class="grp-module grp-collapse grp-closed">
+				<div class="grp-row">
+					<div class="l-2c-fluid l-d-4">
+						<div class="c-1"><label class="required">Allowed</label></div>
+						<div class="c-2">
+							<p class="grp-text">
+							{% for extension in settings_var.EXTENSIONS.items %}
+								{% ifnotequal extension.0 'Folder' %}
+									<strong>{{ extension.0|safe }}</strong> ({{ extension.1|join:", "|safe }})<br />
+								{% endifnotequal %}
+							{% endfor %}
+							</p>
+						</div>
+					</div>
+				</div>
+				<div class="grp-row">
+					<div class="l-2c-fluid l-d-4">
+						<div class="c-1"><label class="required">Max. Filesize</label></div>
+						<div class="c-2"><p class="grp-text">{{ settings_var.MAX_UPLOAD_SIZE|filesizeformat }}</p></div>
+					</div>
+				</div>
+				{% if settings_var.NORMALIZE_FILENAME or settings_var.CONVERT_FILENAME %}
+					<div class="grp-row">
+						<div class="l-2c-fluid l-d-4">
+							<div class="c-1"><label class="required">Filename</label></div>
+							<div class="c-2">
+								{% if settings_var.NORMALIZE_FILENAME %}
+									<p class="grp-text">The Name will be normalized by converting or stripping all non-standard characters.</p>
+								{% endif %}
+								{% if settings_var.CONVERT_FILENAME %}
+									<p class="grp-text">The Name will be converted to lowercase. Spaces will be replaced with underscores.</p>
+								{% endif %}
+							</div>
+						</div>
+					</div>
+				{% endif %}
+			</fieldset>
+		</form>
+	</div>
+
+	<div class="wysihtml5-filebrowser-list">
+	{% for image in images %}
+		<div class="wysihtml5-filebrowser-list-item">
+			<div class="wysihtml5-filebrowser-list-item-image-container">
+			{% if image.width >= 100 %}
+			<img src="{{image.url}}" width="100" data-filename="{{image.filename}}" data-width="{{image.width}}" data-height="{{image.height}}">
+			{% endif %}
+			{% if image.width < 100 %}
+			<img src="{{image.url}}" width="{{image.width}}" data-filename="{{image.filename}}" data-width="{{image.width}}" data-height="{{image.height}}">
+			{% endif %}
+			</div>
+			<div>{{image.filename}}</div>
+		</div>
+	{% endfor %}
+	</div>
+	<script>
+		//quickly vertically centers images
+		(function($) {
+			var images = $('.wysihtml5-filebrowser-list-item-image-container img');
+			for (var i = images.length - 1; i >= 0; i--) {
+				var image = images[i];
+				var w = image.getAttribute('data-width');
+				var h = image.getAttribute('data-height');
+				image.style.marginTop = ((100 - (h/w * 100)) / 2) + 'px';
+				image.style.marginBottom = image.style.marginTop
+			};
+		})(grp.jQuery);
+	</script>
+</div>

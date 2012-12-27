@@ -7,6 +7,9 @@ from django.utils.encoding import force_unicode
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
+from django.template.loader import render_to_string
+from django.template import RequestContext
+
 
 from wysihtml5.conf import TOOLBAR_CONF
 from wysihtml5.utils import get_function
@@ -32,16 +35,35 @@ def render_createLink_dialog(id):
 
 
 def render_insertImage_dialog(id):
-    return u'\
-<div data-wysihtml5-dialog="insertImage" style="display:none">\
-  <label>%(_link_)s:</label>&nbsp;\
-  <input data-wysihtml5-dialog-field="src" value="http://">\
-  <a data-wysihtml5-dialog-action="save" class="button">%(_ok_)s</a>&nbsp;\
-  <a data-wysihtml5-dialog-action="cancel" class="button">%(_cancel_)s</a>\
-</div>' % { "_link_": _("Image"),
-            "_ok_": _("Ok"),
-            "_cancel_": _("Cancel")
-        }
+    tmpl_vars = {
+        'label': _("Image"),
+        'ok': _("Ok"),
+        'cancel': _("Cancel")
+    }
+    return mark_safe(render_to_string('insert-image.html', tmpl_vars))
+    
+def filter_filebrowser_images(item):
+    return item.filetype == 'Image' and not item.is_version
+
+# this one requires that django-filebrowser be installed
+def render_insertImageFromFileBrowser_dialog(id, filter_func=filter_filebrowser_images, filebrowser_do_upload_url='/admin/filebrowser/upload_file/'):
+    import filebrowser.settings
+    from filebrowser.settings import MEDIA_ROOT
+    from filebrowser.base import FileListing
+    from filebrowser.sites import get_site_dict
+    from django.core.context_processors import csrf
+
+    imageslisting = FileListing(MEDIA_ROOT, sorting_by='date', sorting_order='desc', filter_func=filter_func)
+    images = imageslisting.files_walk_filtered()
+
+    tmpl_vars = {
+        'id': id,
+        'images': images,
+        'settings_var': filebrowser.settings,
+        'csrf_token': 'NOT PROVIDED',
+        'filebrowser_do_upload_url': filebrowser_do_upload_url
+    }
+    return mark_safe(render_to_string('insert-from-filebrowser.html', tmpl_vars))
 
 
 def render_formatBlockHeader_icon(id):
@@ -77,6 +99,13 @@ def render_justifyCenter_icon(id):
 
 def render_justifyRight_icon(id):
     return u'<span data-wysihtml5-command="%(command_name)s" title="Paragraph right justified" class="command"></span>' % { "command_name": TOOLBAR_CONF['justifyRight']['command_name'] }
+
+def render_floatLeft_icon(id):
+    return u'<span data-wysihtml5-command="%(command_name)s" title="Wrap text to the right" class="command"></span>' % { "command_name": TOOLBAR_CONF['floatLeft']['command_name'] }
+
+def render_floatRight_icon(id):
+    return u'<span data-wysihtml5-command="%(command_name)s" title="Wrap text to the left" class="command"></span>' % { "command_name": TOOLBAR_CONF['floatRight']['command_name'] }
+
 
 def render_insertOrderedList_icon(id):
     return u'<span data-wysihtml5-command="%(command_name)s" title="Insert an ordered list" class="command"></span>' % { "command_name": TOOLBAR_CONF['insertOrderedList']['command_name'] }
@@ -124,6 +153,8 @@ def render_toolbar_widget(id):
     widget += get_function(render_cmd_icon['justifyLeft'])(id)
     widget += get_function(render_cmd_icon['justifyCenter'])(id)
     widget += get_function(render_cmd_icon['justifyRight'])(id)
+    widget += get_function(render_cmd_icon['floatLeft'])(id)
+    widget += get_function(render_cmd_icon['floatRight'])(id)
     widget += get_function(render_cmd_icon['insertOrderedList'])(id)
     widget += get_function(render_cmd_icon['insertUnorderedList'])(id)
     widget += get_function(render_cmd_icon['insertImage'])(id)
@@ -142,34 +173,39 @@ def render_toolbar_widget(id):
     return widget
 
 def render_js_init_widget(id):
-    widget = u'<script>var editor = new wysihtml5.Editor("%(id)s",{toolbar:"%(id)s-toolbar", parserRules: wysihtml5ParserRules, placeholderText: "%(placeholder)s", stylesheets: "%(cssfile)s"});</script>' % {"id": id, "placeholder": _("Use the toolbar below to edit the content here"), "cssfile": settings.STATIC_URL + "wysihtml5/css/stylesheet.css"}
+    widget = u'<script>var editorList = editorList || {}; (function() { var editor = new wysihtml5.Editor("%(id)s",{toolbar:"%(id)s-toolbar", parserRules: wysihtml5ParserRules, placeholderText: "%(placeholder)s", stylesheets: "%(cssfile)s"}); editorList[\'%(id)s\'] = editor; })();</script>' % {"id": id, "placeholder": _("Use the toolbar below to edit the content here"), "cssfile": settings.STATIC_URL + "wysihtml5/css/stylesheet.css"}
     return widget
 
 class Wysihtml5AdminTextareaWidget(AdminTextareaWidget):
-
     class Media:
         css = {
             'all': (settings.STATIC_URL + "admin/wysihtml5/css/toolbar.css",)
         }
-        js = (settings.STATIC_URL + "admin/wysihtml5/js/advanced.js",
-              settings.STATIC_URL + "admin/wysihtml5/js/wysihtml5-0.4.0pre.min.js")
+        js = (settings.STATIC_URL + "admin/wysihtml5/js/advanced.js"
+              ,settings.STATIC_URL + "admin/wysihtml5/js/wysihtml5-0.4.0pre.js"
+              ,settings.STATIC_URL + "admin/wysihtml5/js/sixfoot.wysihtml5.js"
+              #,settings.STATIC_URL + "admin/wysihtml5/js/wysihtml5-0.4.0pre.min.js"
+              #,settings.STATIC_URL + "admin/wysihtml5/js/wysihtml5-0.3.0.min.js"
+        )
 
     def __init__(self, attrs=None):
         if not attrs:
-            attrs = {"rows": 25}
+            attrs = {"rows": 100, "class": 'wysihtml5-textarea'}
         elif not attrs.get("rows", False):
-            attrs.update({"rows": 25})
+            attrs.update({"rows": 100, "class": 'wysihtml5-textarea'})
+
         super(Wysihtml5AdminTextareaWidget, self).__init__(attrs=attrs)
 
     def render(self, name, value, attrs=None):
         if value is None: value = ''
         final_attrs = self.build_attrs(attrs, name=name)
+
         textarea_widget = u'<textarea%s>%s</textarea>' % (
             flatatt(final_attrs),
             conditional_escape(force_unicode(value)))
         toolbar_widget = render_toolbar_widget(final_attrs.get("id", "unknown"))
         js_init_widget = render_js_init_widget(final_attrs.get("id", "unknown"))
-        return mark_safe(u'<div style="display:inline-block">' +
+        return mark_safe(u'<div class="wysihtml5-field-container" style="display:inline-block">' +
                          toolbar_widget + 
                          textarea_widget + 
                          u'</div>' +
